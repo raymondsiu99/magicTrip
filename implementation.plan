@@ -1,0 +1,37 @@
+# Internationalization and Itinerary Expansion Plan
+
+This plan details how we will improve the initialization of the itinerary and add support for English and Traditional Chinese (zh-TW).
+
+## Goal
+1. Expand the `data.ts` file to fully populate all POIs based on the initial user prompt (adding all missing locations for Hakone, Nara, Osaka, Fukuoka, and Busan).
+2. Add internationalization (i18n) to support both English (en) and Traditional Chinese (zh-TW) for the application UI and the itinerary content.
+
+## Proposed Changes
+
+### Setup & Dependencies
+- Install `i18next` and `react-i18next` to handle translations easily.
+
+### i18n Configuration
+- Create `src/i18n.ts` to initialize `react-i18next` with `en` and `zh-TW` translations.
+- Store the user's language preference in `localStorage` so it persists between reloads.
+- Add a Language Switcher component in the app header to toggle between English and 繁體中文.
+
+### Itinerary Expansion & Translation
+- Update `src/data.ts` to include translation keys or bilingual objects for all POIs and daily descriptions.
+- Instead of just `name: string`, `desc: string`, we will update the `POI` interface to `name: { en: string; zh: string }` and `desc: { en: string; zh: string }`.
+- Update the `DayItinerary` interface similarly to support `title` and `customItems` in both languages.
+- Expand the POI list to include all specific places mentioned in the original 5-week itinerary (e.g., Harajuku, Omotesando, Hakone ropeway, Nishiki Market, Canal City Hakata, etc.).
+
+### UI Refactoring
+- Wrap all hardcoded text strings in `App.tsx`, `Dashboard.tsx`, `Itinerary.tsx`, `MapView.tsx`, and `Notes.tsx` with the `t()` function from `react-i18next`.
+- Update components to read from the bilingual POI/Itinerary data based on the current active language.
+
+## User Review Required
+
+> [!IMPORTANT]  
+> Because the `data.ts` expansion requires updating the data structure to support both English and Traditional Chinese natively (e.g., changing `name: "Ueno Park"` to `name: { en: "Ueno Park", zh: "上野公園" }`), this will break the existing local storage data for anyone who already loaded the app. Since the app is in development, I will just reset the `zustand` store version or prompt the app to re-initialize the itinerary. Are you okay with this approach?
+
+## Open Questions
+
+> [!WARNING]  
+> Do you want the user's custom added items (which they type into the app) to be translated automatically? (Note: Without an external backend/AI API key, the app cannot translate user input automatically, so user-added custom items will remain in the language they were typed in). I assume this is acceptable?
