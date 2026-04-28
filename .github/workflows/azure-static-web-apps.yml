@@ -43,24 +43,7 @@ jobs:
                   api_location: api # Azure Functions folder
                   output_location: build # Vite build output
 
-            # ── Configure Azure Static Web App settings ─────────────────────────────
-            # Propagates AZURE_STORAGE_CONNECTION_STRING from GitHub Secrets to the
-            # Azure Static Web App Application Settings so the Functions API can
-            # read it securely at runtime (it is NEVER exposed to the browser).
-            - name: Azure Login
-              uses: azure/login@v2
-              with:
-                  creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-            - name: Set Azure Static Web App application settings
-              uses: azure/CLI@v2
-              with:
-                  inlineScript: |
-                      az staticwebapp appsettings set \
-                        --name "${{ vars.AZURE_STATIC_WEB_APP_NAME }}" \
-                        --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-                        --setting-names \
-                          "AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
 
     # ── Close PR: remove staging environment ───────────────────────────────────
     close_pull_request:
