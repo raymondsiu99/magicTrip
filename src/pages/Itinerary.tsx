@@ -5,7 +5,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { MapPin, CheckCircle, Circle, GripVertical, Video, Plus } from 'lucide-react';
 import { pois } from '../data';
 import { YouTubeModal } from '../components/ui/YouTubeModal';
-import { useLocalise } from '../lib/utils';
+import { useLocalise, getString } from '../lib/utils';
 
 export function Itinerary() {
   const { itinerary, updateDay, completedItems, toggleCompletedItem } = useTripStore();
@@ -49,11 +49,11 @@ export function Itinerary() {
     
     // Update store (simplified logic for this demo, just storing it back as separate arrays based on order)
     const newPois: number[] = [];
-    const newCustom: string[] = [];
+    const newCustom: (string | import('../data').BilingualString)[] = [];
     
-    items.forEach(item => {
-      if (item.type === 'poi') newPois.push(item.content.id);
-      if (item.type === 'custom') newCustom.push(item.content);
+    items.forEach((item: { id: string; type: 'poi' | 'custom'; content: any }) => {
+      if (item.type === 'poi') newPois.push(item.content.id as number);
+      if (item.type === 'custom') newCustom.push(getString(item.content));
     });
     
     updateDay(selectedDate, { ...currentDay, pois: newPois, customItems: newCustom });

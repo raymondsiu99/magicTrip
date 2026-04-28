@@ -7,7 +7,7 @@ import L from 'leaflet';
 import { Video, Navigation, Map as MapIcon } from 'lucide-react';
 import { YouTubeModal } from '../components/ui/YouTubeModal';
 import { parseISO, format } from 'date-fns';
-import { useLocalise } from '../lib/utils';
+import { useLocalise, getString } from '../lib/utils';
 
 // Fix for default Leaflet icon in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -47,7 +47,7 @@ export function MapView() {
     setVideoModalOpen(true);
   };
 
-  const L = useLocalise();
+  const localise = useLocalise();
 
   const getGoogleMapsUrl = (lat: number, lng: number, name: string) => {
     return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(name)}`;
@@ -64,7 +64,7 @@ export function MapView() {
         >
           {itinerary.map(day => (
             <option key={day.date} value={day.date}>
-              {format(parseISO(day.date), 'MMM d, yyyy')} - {L(day.title)} ({L(day.city)})
+              {format(parseISO(day.date), 'MMM d, yyyy')} - {localise(day.title)} ({localise(day.city)})
             </option>
           ))}
         </select>
@@ -90,8 +90,8 @@ export function MapView() {
             <Marker key={poi.id} position={[poi.lat, poi.lng]}>
               <Popup className="rounded-xl custom-popup">
                 <div className="p-1 min-w-[200px]">
-                  <h3 className="font-bold text-base mb-1">{L(poi.name)}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{L(poi.desc)}</p>
+                  <h3 className="font-bold text-base mb-1">{localise(poi.name)}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{localise(poi.desc)}</p>
                   
                   <div className="flex flex-col gap-2">
                     <button 
@@ -101,7 +101,7 @@ export function MapView() {
                       <Video className="w-4 h-4" /> Watch Video
                     </button>
                     <a 
-                      href={getGoogleMapsUrl(poi.lat, poi.lng, L(poi.name))}
+                      href={getGoogleMapsUrl(poi.lat, poi.lng, getString(poi.name))}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full bg-blue-100 text-blue-600 hover:bg-blue-200 px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
