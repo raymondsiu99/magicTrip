@@ -41,7 +41,7 @@ jobs:
                   action: upload
                   app_location: / # Root of the frontend app
                   api_location: api # Azure Functions folder
-                  output_location: dist # Vite build output
+                  output_location: build # Vite build output
 
             # ── Configure Azure Static Web App settings ─────────────────────────────
             # Propagates AZURE_STORAGE_CONNECTION_STRING from GitHub Secrets to the
