@@ -57,6 +57,7 @@ jobs:
                   app_location: / # Root contains index.html & dist/
                   api_location: api # Azure Functions folder
                   output_location: dist # Vite build output
+                  skip_app_build: true # App already built above; skip Oryx rebuild
 
             # ── Configure Azure Static Web App settings ─────────────────────────────
             # Propagates AZURE_STORAGE_CONNECTION_STRING from GitHub Secrets to the
