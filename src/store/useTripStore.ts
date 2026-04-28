@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { DayItinerary, defaultItinerary, initialBudget } from '../data';
+import { loadTripFromCloud, saveTripToCloud } from '../lib/storageApi';
+
+export type SyncStatus = 'idle' | 'saving' | 'loading' | 'saved' | 'error';
 
 export interface DailySpend {
   date: string;
@@ -15,7 +18,8 @@ export interface TripState {
   completedItems: { [date: string]: string[] }; // stores POI ids or custom items
   notes: string;
   packingList: { id: string; text: string; done: boolean }[];
-  
+  syncStatus: SyncStatus;
+
   // Actions
   updateItinerary: (newItinerary: DayItinerary[]) => void;
   updateDay: (date: string, day: DayItinerary) => void;
@@ -25,6 +29,8 @@ export interface TripState {
   updateNotes: (notes: string) => void;
   addPackingItem: (text: string) => void;
   togglePackingItem: (id: string) => void;
+  loadFromCloud: () => Promise<void>;
+  syncToCloud: () => Promise<void>;
 }
 
 export const useTripStore = create<TripState>()(
@@ -36,6 +42,7 @@ export const useTripStore = create<TripState>()(
       completedItems: {},
       notes: '',
       packingList: [],
+      syncStatus: 'idle' as SyncStatus,
 
       updateItinerary: (newItinerary) => set({ itinerary: newItinerary }),
       updateDay: (date, day) => 
@@ -68,10 +75,50 @@ export const useTripStore = create<TripState>()(
         set((state) => ({
           packingList: state.packingList.map(item => item.id === id ? { ...item, done: !item.done } : item)
         })),
+
+      loadFromCloud: async () => {
+        set({ syncStatus: 'loading' });
+        const data = await loadTripFromCloud();
+        if (data) {
+          set({
+            itinerary: data.itinerary,
+            expenses: data.expenses,
+            completedItems: data.completedItems,
+            notes: data.notes,
+            packingList: data.packingList,
+            syncStatus: 'saved',
+          });
+        } else {
+          set({ syncStatus: 'idle' });
+        }
+      },
+
+      syncToCloud: async () => {
+        set({ syncStatus: 'saving' });
+        const state = (useTripStore.getState() as TripState);
+        const result = await saveTripToCloud({
+          itinerary: state.itinerary,
+          expenses: state.expenses,
+          completedItems: state.completedItems,
+          notes: state.notes,
+          packingList: state.packingList,
+        });
+        set({ syncStatus: result.success ? 'saved' : 'error' });
+        // Reset to idle after 3 s so the indicator fades
+        setTimeout(() => set({ syncStatus: 'idle' }), 3000);
+      },
     }),
     {
       name: 'tripflow-storage',
       version: 2,
+      partialize: (state) => ({
+        itinerary: state.itinerary,
+        budget: state.budget,
+        expenses: state.expenses,
+        completedItems: state.completedItems,
+        notes: state.notes,
+        packingList: state.packingList,
+      }),
     }
   )
 );

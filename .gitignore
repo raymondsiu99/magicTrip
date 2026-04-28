@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Azure Functions local settings (contains secrets — never commit)
+api/local.settings.json
+api/dist/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

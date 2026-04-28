@@ -5,6 +5,7 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { MapPin, CheckCircle, Circle, GripVertical, Video, Plus } from 'lucide-react';
 import { pois } from '../data';
 import { YouTubeModal } from '../components/ui/YouTubeModal';
+import { useLocalise } from '../lib/utils';
 
 export function Itinerary() {
   const { itinerary, updateDay, completedItems, toggleCompletedItem } = useTripStore();
@@ -14,6 +15,7 @@ export function Itinerary() {
   const [newItemText, setNewItemText] = useState('');
   
   const scrollRef = useRef<HTMLDivElement>(null);
+  const L = useLocalise();
 
   const currentDay = itinerary.find(d => d.date === selectedDate) || itinerary[0];
   
@@ -24,7 +26,7 @@ export function Itinerary() {
       const poi = pois.find(p => p.id === poiId);
       if (poi) items.push({ id: `poi-${poiId}-${index}`, type: 'poi', content: poi });
     });
-    currentDay.customItems.forEach((item: string, index: number) => {
+    currentDay.customItems.forEach((item, index: number) => {
       items.push({ id: `custom-${index}`, type: 'custom', content: item });
     });
     return items;
@@ -103,10 +105,10 @@ export function Itinerary() {
       {/* Day Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="mb-2">
-          <h2 className="text-2xl font-bold text-foreground">{currentDay.title}</h2>
+          <h2 className="text-2xl font-bold text-foreground">{L(currentDay.title)}</h2>
           <p className="text-sm text-muted-foreground flex items-center gap-1">
-            <MapPin className="w-4 h-4" /> {currentDay.city}
-            {currentDay.hotel && <span className="ml-2 bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full text-xs">{currentDay.hotel}</span>}
+            <MapPin className="w-4 h-4" /> {L(currentDay.city)}
+            {currentDay.hotel && <span className="ml-2 bg-secondary/20 text-secondary-foreground px-2 py-0.5 rounded-full text-xs">{L(currentDay.hotel)}</span>}
           </p>
         </div>
 
@@ -137,9 +139,9 @@ export function Itinerary() {
                             {item.type === 'poi' ? (
                               <>
                                 <h4 className={`font-semibold text-sm ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                                  {item.content.name}
+                                  {L(item.content.name)}
                                 </h4>
-                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{item.content.desc}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{L(item.content.desc)}</p>
                                 <button 
                                   onClick={() => openVideo(item.content.youtubeSearchQuery)}
                                   className="mt-2 text-xs bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-2 py-1 rounded flex items-center gap-1 font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
@@ -149,7 +151,7 @@ export function Itinerary() {
                               </>
                             ) : (
                               <h4 className={`font-medium text-sm pt-0.5 ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
-                                {item.content}
+                                {L(item.content)}
                               </h4>
                             )}
                           </div>
