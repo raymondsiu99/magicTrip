@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTripStore } from '../store/useTripStore';
-import { pois } from '../data';
+import { pois, getPoiVideos } from '../data';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -8,6 +8,7 @@ import { Video, Navigation, Map as MapIcon } from 'lucide-react';
 import { YouTubeModal } from '../components/ui/YouTubeModal';
 import { parseISO, format } from 'date-fns';
 import { useLocalise, getString } from '../lib/utils';
+import { useTranslation } from 'react-i18next';
 
 // Fix for default Leaflet icon in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -25,10 +26,12 @@ function MapUpdater({ center, zoom }: { center: [number, number], zoom: number }
 }
 
 export function MapView() {
-  const { itinerary } = useTripStore();
+  const { itinerary, userVideos, addUserVideo, removeUserVideo } = useTripStore();
   const [selectedDate, setSelectedDate] = useState<string>(itinerary[0].date);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
-  const [currentSearchQuery, setCurrentSearchQuery] = useState('');
+  const [currentVideoKey, setCurrentVideoKey] = useState('');
+  const [currentVideoTitle, setCurrentVideoTitle] = useState('');
+  const [currentDefaultVideos, setCurrentDefaultVideos] = useState<string[]>([]);
 
   const currentDay = itinerary.find(d => d.date === selectedDate) || itinerary[0];
   
@@ -42,8 +45,13 @@ export function MapView() {
     
   const zoom = dayPois.length > 0 ? 13 : 10;
 
-  const openVideo = (query: string) => {
-    setCurrentSearchQuery(query);
+  const { i18n } = useTranslation();
+  const lang = i18n.language.startsWith('zh') ? 'zh' : 'en';
+
+  const openVideo = (poiId: number, title: string) => {
+    setCurrentVideoKey(`poi-${poiId}`);
+    setCurrentVideoTitle(title);
+    setCurrentDefaultVideos(getPoiVideos(poiId)[lang]);
     setVideoModalOpen(true);
   };
 
@@ -95,7 +103,7 @@ export function MapView() {
                   
                   <div className="flex flex-col gap-2">
                     <button 
-                      onClick={() => openVideo(poi.youtubeSearchQuery)}
+                      onClick={() => openVideo(poi.id, localise(poi.name))}
                       className="w-full bg-red-100 text-red-600 hover:bg-red-200 px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                     >
                       <Video className="w-4 h-4" /> Watch Video
@@ -119,7 +127,12 @@ export function MapView() {
       <YouTubeModal 
         isOpen={videoModalOpen} 
         onClose={() => setVideoModalOpen(false)} 
-        searchQuery={currentSearchQuery} 
+        videoKey={currentVideoKey}
+        title={currentVideoTitle}
+        defaultVideos={currentDefaultVideos}
+        userVideos={userVideos[currentVideoKey] || []}
+        onAddVideo={(id) => addUserVideo(currentVideoKey, id)}
+        onRemoveUserVideo={(id) => removeUserVideo(currentVideoKey, id)}
       />
     </div>
   );
