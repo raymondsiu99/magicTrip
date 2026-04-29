@@ -19,6 +19,7 @@ export interface TripState {
   notes: string;
   packingList: { id: string; text: string; done: boolean }[];
   syncStatus: SyncStatus;
+  userVideos: { [key: string]: string[] }; // key: "poi-1", "hotel-mitsui-ueno", etc.
 
   // Actions
   updateItinerary: (newItinerary: DayItinerary[]) => void;
@@ -31,6 +32,8 @@ export interface TripState {
   togglePackingItem: (id: string) => void;
   loadFromCloud: () => Promise<void>;
   syncToCloud: () => Promise<void>;
+  addUserVideo: (key: string, videoId: string) => void;
+  removeUserVideo: (key: string, videoId: string) => void;
 }
 
 export const useTripStore = create<TripState>()(
@@ -43,6 +46,7 @@ export const useTripStore = create<TripState>()(
       notes: '',
       packingList: [],
       syncStatus: 'idle' as SyncStatus,
+      userVideos: {},
 
       updateItinerary: (newItinerary) => set({ itinerary: newItinerary }),
       updateDay: (date, day) => 
@@ -74,6 +78,20 @@ export const useTripStore = create<TripState>()(
       togglePackingItem: (id) =>
         set((state) => ({
           packingList: state.packingList.map(item => item.id === id ? { ...item, done: !item.done } : item)
+        })),
+
+      addUserVideo: (key, videoId) =>
+        set((state) => {
+          const existing = state.userVideos[key] || [];
+          if (existing.includes(videoId)) return state;
+          return { userVideos: { ...state.userVideos, [key]: [...existing, videoId] } };
+        }),
+      removeUserVideo: (key, videoId) =>
+        set((state) => ({
+          userVideos: {
+            ...state.userVideos,
+            [key]: (state.userVideos[key] || []).filter((id) => id !== videoId),
+          },
         })),
 
       loadFromCloud: async () => {
@@ -110,7 +128,7 @@ export const useTripStore = create<TripState>()(
     }),
     {
       name: 'tripflow-storage',
-      version: 2,
+      version: 3,
       partialize: (state) => ({
         itinerary: state.itinerary,
         budget: state.budget,
@@ -118,6 +136,7 @@ export const useTripStore = create<TripState>()(
         completedItems: state.completedItems,
         notes: state.notes,
         packingList: state.packingList,
+        userVideos: state.userVideos,
       }),
     }
   )

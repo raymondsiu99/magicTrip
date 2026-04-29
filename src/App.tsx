@@ -11,18 +11,20 @@ import { useTripStore } from './store/useTripStore';
 const AUTOSAVE_DELAY_MS = 5000;
 
 function App() {
-  const [currentTab, setCurrentTab] = useState('dashboard');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [currentTab, setCurrentTab] = useState(() => localStorage.getItem('tripflow-tab') || 'dashboard');
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('tripflow-dark') === 'true');
   const { t, i18n } = useTranslation();
   const { syncStatus, loadFromCloud, syncToCloud, itinerary, expenses, notes, packingList, completedItems } =
     useTripStore();
 
-  // Auto-detect dark mode
+  // Apply dark mode on mount (persisted preference takes priority, otherwise use system)
   useEffect(() => {
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
+    const saved = localStorage.getItem('tripflow-dark');
+    const dark = saved !== null
+      ? saved === 'true'
+      : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setIsDarkMode(dark);
+    document.documentElement.classList.toggle('dark', dark);
   }, []);
 
   // Load from cloud once on mount
@@ -44,8 +46,10 @@ function App() {
   }, [itinerary, expenses, notes, packingList, completedItems]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    if (!isDarkMode) {
+    const next = !isDarkMode;
+    setIsDarkMode(next);
+    localStorage.setItem('tripflow-dark', String(next));
+    if (next) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
@@ -109,7 +113,7 @@ function App() {
         {currentTab === 'map' && <MapView />}
         {currentTab === 'notes' && <Notes />}
       </main>
-      <BottomNav currentTab={currentTab} setTab={setCurrentTab} />
+      <BottomNav currentTab={currentTab} setTab={(tab) => { setCurrentTab(tab); localStorage.setItem('tripflow-tab', tab); }} />
     </div>
   );
 }

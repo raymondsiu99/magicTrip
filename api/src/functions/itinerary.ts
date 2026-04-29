@@ -88,7 +88,6 @@ app.http("saveItinerary", {
 
       await blobClient.upload(Buffer.from(content), Buffer.byteLength(content), {
         blobHTTPHeaders: { blobContentType: "application/json" },
-        overwrite: true,
       });
 
       return { status: 200, jsonBody: { success: true } };
